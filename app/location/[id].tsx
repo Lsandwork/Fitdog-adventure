@@ -65,7 +65,7 @@ export default function LocationScreen() {
     <Screen>
       <View style={styles.scene}>
         <Text style={styles.emoji}>{location.emoji}</Text>
-        <DogAvatar size={136} mood="curious" />
+        <DogAvatar size={136} mood="curious" pose="side" />
         <View style={styles.reactionBubble}>
           <Text style={styles.reaction}>{reaction}</Text>
         </View>

@@ -114,7 +114,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
 ];
 
 export const ACCESSORIES: { id: AccessoryId; name: string; price: number; emoji: string }[] = [
-  { id: 'bandana', name: 'Red Bandana', price: 50, emoji: '🧣' },
+  { id: 'bandana', name: 'Blue Paw Bandana', price: 50, emoji: '🔷' },
   { id: 'sunglasses', name: 'Cool Shades', price: 80, emoji: '🕶️' },
   { id: 'backpack', name: 'Trail Pack', price: 120, emoji: '🎒' },
   { id: 'bowtie', name: 'Fancy Bowtie', price: 60, emoji: '🎀' },

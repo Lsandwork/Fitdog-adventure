@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { AccessoryOverlay, DogBodySvg } from '@/components/AccessoryOverlay';
+import { AccessoryOverlay, DogBodySvg, type DogPose } from '@/components/AccessoryOverlay';
 import { ACCESSORY_META } from '@/lib/accessoryAnchors';
 import { lightTap, successTap } from '@/lib/haptics';
 import { playSound } from '@/lib/sounds';
@@ -26,6 +26,7 @@ interface DogAvatarProps {
   interactive?: boolean;
   mood?: AvatarMood;
   showHint?: boolean;
+  pose?: DogPose;
 }
 
 export function DogAvatar({
@@ -34,6 +35,7 @@ export function DogAvatar({
   interactive = true,
   mood,
   showHint = false,
+  pose = 'front',
 }: DogAvatarProps) {
   const dogStyle = useGameStore((s) => s.dogStyle);
   const furColor = useGameStore((s) => s.furColor);
@@ -110,15 +112,15 @@ export function DogAvatar({
           <View style={styles.layerStack}>
             {accessory && ACCESSORY_META[accessory].slot === 'back' && (
               <View style={styles.layer}>
-                <AccessoryOverlay id={accessory} />
+                <AccessoryOverlay id={accessory} pose={pose} />
               </View>
             )}
             <View style={styles.layer}>
-              <DogBodySvg furColor={furColor} style={dogStyle} mood={resolvedMood} />
+              <DogBodySvg furColor={furColor} style={dogStyle} mood={resolvedMood} pose={pose} />
             </View>
             {accessory && ACCESSORY_META[accessory].slot !== 'back' && (
               <View style={styles.layer}>
-                <AccessoryOverlay id={accessory} />
+                <AccessoryOverlay id={accessory} pose={pose} />
               </View>
             )}
           </View>
@@ -148,7 +150,7 @@ export function DogAvatar({
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
   bg: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  dogWrap: { width: '78%', height: '78%' },
+  dogWrap: { width: '86%', height: '86%' },
   layerStack: { flex: 1, position: 'relative' },
   layer: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   bubble: {
