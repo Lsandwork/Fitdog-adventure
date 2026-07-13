@@ -197,7 +197,10 @@ export const useGameStore = create<GameStore>()(
         return true;
       },
 
-      equipAccessory: (id) => set({ equippedAccessory: id }),
+      equipAccessory: (id) => {
+        if (id !== null && !get().ownedAccessories.includes(id)) return;
+        set({ equippedAccessory: id });
+      },
 
       visitLocation: (id) => {
         const state = get();

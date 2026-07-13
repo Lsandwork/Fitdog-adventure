@@ -34,7 +34,7 @@ export default function HomeScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <DogAvatar size={80} />
+        <DogAvatar size={80} interactive={false} />
         <View style={styles.headerText}>
           <Text style={styles.greeting}>Hey, {dogName}!</Text>
           <Text style={styles.stats}>🪙 {coins} · Lv {progress.level} · 🔥 {dailyStreak}d streak</Text>
