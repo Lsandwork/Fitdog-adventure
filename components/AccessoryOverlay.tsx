@@ -1,4 +1,12 @@
-import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Defs,
+  Ellipse,
+  LinearGradient as SvgLinearGradient,
+  Path,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 
 import type { AccessoryId } from '@/lib/types';
 
@@ -69,7 +77,7 @@ export function DogBodySvg({
 }: {
   furColor: string;
   style: string;
-  mood: 'idle' | 'happy' | 'tired';
+  mood: 'idle' | 'happy' | 'tired' | 'curious';
 }) {
   const earFloppy = style === 'fluffy';
   const earPointy = style === 'sporty';
@@ -79,49 +87,68 @@ export function DogBodySvg({
       ? 'M42 46 Q50 52 58 46'
       : mood === 'tired'
         ? 'M44 48 Q50 44 56 48'
+        : mood === 'curious'
+          ? 'M45 48 Q50 51 55 48'
         : 'M44 47 Q50 50 56 47';
 
   return (
     <Svg width="100%" height="100%" viewBox="0 0 100 120">
-      {/* Body */}
-      <Ellipse cx="50" cy="82" rx="30" ry="26" fill={furColor} stroke="#fff" strokeWidth="2" />
-      {/* Legs */}
-      <Ellipse cx="36" cy="104" rx="7" ry="5" fill={furColor} />
-      <Ellipse cx="64" cy="104" rx="7" ry="5" fill={furColor} />
-      {/* Head */}
-      <Circle cx="50" cy="40" r="24" fill={furColor} stroke="#fff" strokeWidth="2" />
-      {/* Ears */}
+      <Defs>
+        <SvgLinearGradient id="furShade" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.22" />
+          <Stop offset="0.55" stopColor={furColor} stopOpacity="1" />
+          <Stop offset="1" stopColor="#2A1B12" stopOpacity="0.18" />
+        </SvgLinearGradient>
+        <SvgLinearGradient id="bellyShade" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#FFF4DF" stopOpacity="0.95" />
+          <Stop offset="1" stopColor="#F4D4A4" stopOpacity="0.78" />
+        </SvgLinearGradient>
+      </Defs>
+      <Path d="M22 78 Q25 59 42 57 L59 57 Q78 61 82 80 Q84 100 66 106 L35 106 Q17 99 22 78 Z" fill="url(#furShade)" stroke="#fff" strokeWidth="2" />
+      <Ellipse cx="50" cy="84" rx="16" ry="18" fill="url(#bellyShade)" opacity="0.88" />
+      <Ellipse cx="34" cy="103" rx="8" ry="6" fill={furColor} stroke="#fff" strokeWidth="1" />
+      <Ellipse cx="66" cy="103" rx="8" ry="6" fill={furColor} stroke="#fff" strokeWidth="1" />
+      <Circle cx="50" cy="40" r="25" fill="url(#furShade)" stroke="#fff" strokeWidth="2" />
       {earFloppy && (
         <>
-          <Ellipse cx="28" cy="32" rx="10" ry="14" fill={furColor} transform="rotate(-20 28 32)" />
-          <Ellipse cx="72" cy="32" rx="10" ry="14" fill={furColor} transform="rotate(20 72 32)" />
+          <Ellipse cx="27" cy="34" rx="11" ry="17" fill={furColor} transform="rotate(-24 27 34)" stroke="#fff" strokeWidth="1" />
+          <Ellipse cx="73" cy="34" rx="11" ry="17" fill={furColor} transform="rotate(24 73 34)" stroke="#fff" strokeWidth="1" />
         </>
       )}
       {earPointy && (
         <>
-          <Path d="M30 28 L24 12 L38 24 Z" fill={furColor} />
-          <Path d="M70 28 L76 12 L62 24 Z" fill={furColor} />
+          <Path d="M30 28 L24 11 L39 24 Z" fill={furColor} stroke="#fff" strokeWidth="1" />
+          <Path d="M70 28 L76 11 L61 24 Z" fill={furColor} stroke="#fff" strokeWidth="1" />
         </>
       )}
       {style === 'adventurer' && (
         <>
-          <Path d="M32 30 L28 18 L40 26 Z" fill={furColor} />
-          <Path d="M68 30 L72 18 L60 26 Z" fill={furColor} />
+          <Path d="M32 30 L28 17 L41 26 Z" fill={furColor} stroke="#fff" strokeWidth="1" />
+          <Path d="M68 30 L72 17 L59 26 Z" fill={furColor} stroke="#fff" strokeWidth="1" />
         </>
       )}
-      {/* Face */}
-      <Circle cx="40" cy={eyeY} r="3" fill="#222" />
-      <Circle cx="60" cy={eyeY} r="3" fill="#222" />
+      <Ellipse cx="50" cy="44" rx="12" ry="9" fill="#FFF2DC" opacity="0.86" />
+      <Circle cx="40" cy={eyeY} r={mood === 'curious' ? 3.6 : 3} fill="#222" />
+      <Circle cx="60" cy={eyeY + (mood === 'curious' ? -1 : 0)} r={mood === 'curious' ? 3.6 : 3} fill="#222" />
       {mood === 'happy' && (
         <>
           <Circle cx="38" cy={eyeY - 2} r="1" fill="#fff" />
           <Circle cx="58" cy={eyeY - 2} r="1" fill="#fff" />
         </>
       )}
+      {mood === 'tired' && (
+        <>
+          <Path d="M35 32 L44 34" stroke="#3A2A1A" strokeWidth="1.4" strokeLinecap="round" />
+          <Path d="M56 34 L65 32" stroke="#3A2A1A" strokeWidth="1.4" strokeLinecap="round" />
+        </>
+      )}
       <Ellipse cx="50" cy="42" rx="5" ry="4" fill="#3A2A1A" />
       <Path d={mouthPath} stroke="#3A2A1A" strokeWidth="1.5" fill="none" />
-      {/* Tail */}
-      <Path d="M76 78 Q92 68 88 52" stroke={furColor} strokeWidth="8" fill="none" strokeLinecap="round" />
+      <Circle cx="34" cy="47" r="2.5" fill="#FF8A9A" opacity="0.5" />
+      <Circle cx="66" cy="47" r="2.5" fill="#FF8A9A" opacity="0.5" />
+      <Path d="M75 78 Q94 67 88 51" stroke={furColor} strokeWidth="8" fill="none" strokeLinecap="round" />
+      <Path d="M34 103 Q36 100 39 103" stroke="#3A2A1A" strokeWidth="1" fill="none" opacity="0.45" />
+      <Path d="M61 103 Q64 100 67 103" stroke="#3A2A1A" strokeWidth="1" fill="none" opacity="0.45" />
     </Svg>
   );
 }

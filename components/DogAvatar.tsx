@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -17,7 +17,7 @@ import { playSound } from '@/lib/sounds';
 import { useGameStore } from '@/lib/store';
 import type { AccessoryId } from '@/lib/types';
 
-export type AvatarMood = 'idle' | 'happy' | 'tired';
+export type AvatarMood = 'idle' | 'happy' | 'tired' | 'curious';
 
 interface DogAvatarProps {
   size?: number;
@@ -46,21 +46,32 @@ export function DogAvatar({
   const breathe = useSharedValue(0);
   const bounce = useSharedValue(1);
   const wiggle = useSharedValue(0);
-  const sparkle = useSharedValue(0);
+  const sparkle = useSharedValue(1);
+  const heartLift = useSharedValue(0);
   const prevAccessory = useRef(accessory);
+  const reactionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [reaction, setReaction] = useState<string | null>(null);
 
   useEffect(() => {
     breathe.value = withRepeat(withSequence(withTiming(1, { duration: 1400 }), withTiming(0, { duration: 1400 })), -1, true);
   }, [breathe]);
 
   useEffect(() => {
+    return () => {
+      if (reactionTimer.current) clearTimeout(reactionTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (prevAccessory.current !== accessory) {
-      sparkle.value = 0;
+      sparkle.value = 1;
       sparkle.value = withSequence(withSpring(1.12), withSpring(1));
+      heartLift.value = 0;
+      heartLift.value = withTiming(1, { duration: 900 });
       if (accessory) successTap();
       prevAccessory.current = accessory;
     }
-  }, [accessory, sparkle]);
+  }, [accessory, heartLift, sparkle]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [
@@ -70,11 +81,25 @@ export function DogAvatar({
     ],
   }));
 
+  const heartStyle = useAnimatedStyle(() => ({
+    opacity: heartLift.value,
+    transform: [
+      { translateY: heartLift.value * -24 },
+      { scale: 0.8 + heartLift.value * 0.3 },
+    ],
+  }));
+
   const onPress = () => {
     if (!interactive) return;
     lightTap();
     playSound('tap');
+    if (reactionTimer.current) clearTimeout(reactionTimer.current);
+    const reactions = ['Good pup!', 'Woof!', 'Ready to play?', 'Let’s explore!'];
+    setReaction(reactions[Math.floor(Math.random() * reactions.length)]);
+    reactionTimer.current = setTimeout(() => setReaction(null), 1600);
     bounce.value = withSequence(withSpring(1.08), withSpring(1));
+    heartLift.value = 0;
+    heartLift.value = withTiming(1, { duration: 900 });
     wiggle.value = withSequence(withTiming(-6, { duration: 80 }), withTiming(6, { duration: 80 }), withTiming(0, { duration: 80 }));
   };
 
@@ -98,6 +123,12 @@ export function DogAvatar({
             )}
           </View>
         </Animated.View>
+        {reaction && (
+          <View style={[styles.bubble, { maxWidth: size * 0.8 }]}>
+            <Text style={[styles.bubbleText, { fontSize: size * 0.1 }]}>{reaction}</Text>
+          </View>
+        )}
+        <Animated.Text style={[styles.hearts, { fontSize: size * 0.18 }, heartStyle]}>💕</Animated.Text>
         {showHint && interactive && (
           <Text style={[styles.hint, { fontSize: size * 0.1 }]}>Tap me!</Text>
         )}
@@ -120,5 +151,18 @@ const styles = StyleSheet.create({
   dogWrap: { width: '78%', height: '78%' },
   layerStack: { flex: 1, position: 'relative' },
   layer: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
+  bubble: {
+    position: 'absolute',
+    top: 6,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255,140,66,0.25)',
+  },
+  bubbleText: { color: '#3A2A1A', fontWeight: '700', textAlign: 'center' },
+  hearts: { position: 'absolute', right: 12, top: 18 },
   hint: { position: 'absolute', bottom: 6, color: '#5A8FA8', fontWeight: '600' },
 });
