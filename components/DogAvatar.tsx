@@ -1,6 +1,5 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -10,52 +9,44 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { AccessoryOverlay, DogBodySvg, type DogPose } from '@/components/AccessoryOverlay';
-import { ACCESSORY_META } from '@/lib/accessoryAnchors';
-import { lightTap, successTap } from '@/lib/haptics';
+import { lightTap } from '@/lib/haptics';
 import { playSound } from '@/lib/sounds';
-import { useGameStore } from '@/lib/store';
-import type { AccessoryId } from '@/lib/types';
 
-export type AvatarMood = 'idle' | 'happy' | 'tired' | 'curious';
+/**
+ * Exact Fitdog avatar asset — do not replace with SVG/emoji/generated art.
+ * Public web path: /assets/avatar/fitdog-avatar.png
+ * Bundled native path: assets/avatar/fitdog-avatar.png
+ */
+export const FITDOG_AVATAR = require('../assets/avatar/fitdog-avatar.png');
+export const FITDOG_AVATAR_PUBLIC_PATH = '/assets/avatar/fitdog-avatar.png';
 
 interface DogAvatarProps {
   size?: number;
-  /** Preview an accessory without equipping (shop). */
-  previewAccessory?: AccessoryId | null;
   interactive?: boolean;
-  mood?: AvatarMood;
   showHint?: boolean;
-  pose?: DogPose;
+  /** Kept for call-site compatibility; ignored — exact PNG only. */
+  previewAccessory?: unknown;
+  mood?: unknown;
+  pose?: unknown;
 }
 
 export function DogAvatar({
   size = 100,
-  previewAccessory,
   interactive = true,
-  mood,
   showHint = false,
-  pose = 'front',
 }: DogAvatarProps) {
-  const dogStyle = useGameStore((s) => s.dogStyle);
-  const furColor = useGameStore((s) => s.furColor);
-  const equipped = useGameStore((s) => s.equippedAccessory);
-  const energy = useGameStore((s) => s.energy);
-
-  const accessory = previewAccessory !== undefined ? previewAccessory : equipped;
-  const resolvedMood: AvatarMood = mood ?? (energy <= 2 ? 'tired' : 'idle');
-
-  const breathe = useSharedValue(0);
   const bounce = useSharedValue(1);
-  const wiggle = useSharedValue(0);
-  const sparkle = useSharedValue(1);
-  const heartLift = useSharedValue(0);
-  const prevAccessory = useRef(accessory);
+  const breathe = useSharedValue(0);
   const reactionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [reaction, setReaction] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    breathe.value = withRepeat(withSequence(withTiming(1, { duration: 1400 }), withTiming(0, { duration: 1400 })), -1, true);
+    breathe.value = withRepeat(
+      withSequence(withTiming(1, { duration: 1400 }), withTiming(0, { duration: 1400 })),
+      -1,
+      true
+    );
   }, [breathe]);
 
   useEffect(() => {
@@ -64,31 +55,8 @@ export function DogAvatar({
     };
   }, []);
 
-  useEffect(() => {
-    if (prevAccessory.current !== accessory) {
-      sparkle.value = 1;
-      sparkle.value = withSequence(withSpring(1.12), withSpring(1));
-      heartLift.value = 0;
-      heartLift.value = withTiming(1, { duration: 900 });
-      if (accessory) successTap();
-      prevAccessory.current = accessory;
-    }
-  }, [accessory, heartLift, sparkle]);
-
   const animStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: breathe.value * -3 },
-      { scale: bounce.value * sparkle.value },
-      { rotate: `${wiggle.value}deg` },
-    ],
-  }));
-
-  const heartStyle = useAnimatedStyle(() => ({
-    opacity: heartLift.value,
-    transform: [
-      { translateY: heartLift.value * -24 },
-      { scale: 0.8 + heartLift.value * 0.3 },
-    ],
+    transform: [{ translateY: breathe.value * -2 }, { scale: bounce.value }],
   }));
 
   const onPress = () => {
@@ -99,65 +67,53 @@ export function DogAvatar({
     const reactions = ['Good pup!', 'Woof!', 'Ready to play?', 'Let’s explore!'];
     setReaction(reactions[Math.floor(Math.random() * reactions.length)]);
     reactionTimer.current = setTimeout(() => setReaction(null), 1600);
-    bounce.value = withSequence(withSpring(1.08), withSpring(1));
-    heartLift.value = 0;
-    heartLift.value = withTiming(1, { duration: 900 });
-    wiggle.value = withSequence(withTiming(-6, { duration: 80 }), withTiming(6, { duration: 80 }), withTiming(0, { duration: 80 }));
+    bounce.value = withSequence(withSpring(1.06), withSpring(1));
   };
 
-  const inner = (
+  const content = (
     <View style={[styles.wrap, { width: size, height: size }]}>
-      <LinearGradient colors={['#87CEEB', '#E8F4FC']} style={[styles.bg, { borderRadius: size / 2 }]}>
-        <Animated.View style={[styles.dogWrap, animStyle]}>
-          <View style={styles.layerStack}>
-            {accessory && ACCESSORY_META[accessory].slot === 'back' && (
-              <View style={styles.layer}>
-                <AccessoryOverlay id={accessory} pose={pose} />
-              </View>
-            )}
-            <View style={styles.layer}>
-              <DogBodySvg furColor={furColor} style={dogStyle} mood={resolvedMood} pose={pose} />
-            </View>
-            {accessory && ACCESSORY_META[accessory].slot !== 'back' && (
-              <View style={styles.layer}>
-                <AccessoryOverlay id={accessory} pose={pose} />
-              </View>
-            )}
-          </View>
-        </Animated.View>
-        {reaction && (
-          <View style={[styles.bubble, { maxWidth: size * 0.8 }]}>
-            <Text style={[styles.bubbleText, { fontSize: size * 0.1 }]}>{reaction}</Text>
-          </View>
+      <Animated.View style={[styles.imageWrap, animStyle]}>
+        {failed ? (
+          <View style={styles.empty} accessibilityLabel="Avatar placeholder" />
+        ) : (
+          <Image
+            source={FITDOG_AVATAR}
+            accessibilityLabel="Fitdog avatar"
+            style={{ width: size, height: size }}
+            resizeMode="contain"
+            onError={() => setFailed(true)}
+          />
         )}
-        <Animated.Text style={[styles.hearts, { fontSize: size * 0.18 }, heartStyle]}>💕</Animated.Text>
-        {showHint && interactive && (
-          <Text style={[styles.hint, { fontSize: size * 0.1 }]}>Tap me!</Text>
-        )}
-      </LinearGradient>
+      </Animated.View>
+      {reaction ? (
+        <View style={[styles.bubble, { maxWidth: size * 0.85 }]}>
+          <Text style={[styles.bubbleText, { fontSize: Math.max(11, size * 0.1) }]}>{reaction}</Text>
+        </View>
+      ) : null}
+      {showHint && interactive ? (
+        <Text style={[styles.hint, { fontSize: Math.max(10, size * 0.1) }]}>Tap me!</Text>
+      ) : null}
     </View>
   );
 
-  if (!interactive) return inner;
+  if (!interactive) return content;
 
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="Pet your dog">
-      {inner}
+      {content}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
-  bg: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  dogWrap: { width: '86%', height: '86%' },
-  layerStack: { flex: 1, position: 'relative' },
-  layer: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
+  imageWrap: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+  empty: { width: '100%', height: '100%', backgroundColor: 'transparent' },
   bubble: {
     position: 'absolute',
-    top: 6,
+    top: 4,
     alignSelf: 'center',
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(255,255,255,0.94)',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -165,6 +121,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,140,66,0.25)',
   },
   bubbleText: { color: '#3A2A1A', fontWeight: '700', textAlign: 'center' },
-  hearts: { position: 'absolute', right: 12, top: 18 },
-  hint: { position: 'absolute', bottom: 6, color: '#5A8FA8', fontWeight: '600' },
+  hint: { position: 'absolute', bottom: 4, color: '#5A8FA8', fontWeight: '600' },
 });

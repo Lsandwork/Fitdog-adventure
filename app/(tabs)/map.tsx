@@ -122,7 +122,7 @@ export default function MapScreen() {
           })}
 
           <View style={styles.mapDog}>
-            <DogAvatar size={58} mood="curious" pose="side" interactive={false} />
+            <DogAvatar size={58} interactive={false} />
           </View>
         </View>
       </View>

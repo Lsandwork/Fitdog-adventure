@@ -24,11 +24,11 @@ export default function ShopScreen() {
       <Text style={styles.sub}>Coin-only shop — no real money, no loot boxes. 🪙 {coins}</Text>
 
       <View style={styles.preview}>
-        <DogAvatar size={140} previewAccessory={activePreview} interactive showHint />
+        <DogAvatar size={140} interactive showHint />
         <Text style={styles.previewLabel}>
           {activePreview
-            ? `Previewing: ${ACCESSORIES.find((a) => a.id === activePreview)?.name}`
-            : 'Tap an item to preview on your pup'}
+            ? `Selected: ${ACCESSORIES.find((a) => a.id === activePreview)?.name}`
+            : 'Official Fitdog avatar · tap an item to buy or equip'}
         </Text>
       </View>
 

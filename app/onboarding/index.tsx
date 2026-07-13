@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { DogAvatar } from '@/components/DogAvatar';
 import { Screen } from '@/components/Screen';
 import { lightTap } from '@/lib/haptics';
 
@@ -10,7 +11,9 @@ export default function OnboardingName() {
 
   return (
     <Screen>
-      <Text style={styles.emoji}>🐕</Text>
+      <View style={styles.avatarWrap}>
+        <DogAvatar size={160} interactive={false} />
+      </View>
       <Text style={styles.title}>Welcome to Fitdog Adventure!</Text>
       <Text style={styles.sub}>Adopt your virtual pup and start exploring.</Text>
       <Text style={styles.label}>Name your dog</Text>
@@ -34,7 +37,7 @@ export default function OnboardingName() {
 }
 
 const styles = StyleSheet.create({
-  emoji: { fontSize: 64, textAlign: 'center', marginTop: 24 },
+  avatarWrap: { alignItems: 'center', marginTop: 12 },
   title: { fontSize: 26, fontWeight: '800', color: '#FF8C42', textAlign: 'center', marginTop: 16 },
   sub: { fontSize: 15, color: '#666', textAlign: 'center', marginTop: 8, marginBottom: 32 },
   label: { fontSize: 14, fontWeight: '600', color: '#444', marginBottom: 8 },
