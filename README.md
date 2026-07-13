@@ -46,4 +46,3 @@ npx expo start
 ## Assets
 
 See `README_ASSETS.md` for the Firefly/production asset drop locations and suggested filenames. The app currently uses built-in gradient/vector fallback artwork, so it runs cleanly without any external image files.
-# Fitdog-adventure
